@@ -33,6 +33,8 @@ const Index = () => {
   const [step, setStep] = useState(0);
   const [passportFiles, setPassportFiles] = useState<File[]>([]);
   const [snilsFiles, setSnilsFiles] = useState<File[]>([]);
+  const [birthCertificateFiles, setBirthCertificateFiles] = useState<File[]>([]);
+  const [hasYoungChildren, setHasYoungChildren] = useState<boolean | null>(null);
   const [inn, setInn] = useState('');
   const [email, setEmail] = useState('');
   const [applications, setApplications] = useState<Application[]>([
@@ -72,7 +74,7 @@ const Index = () => {
     }
   };
 
-  const handleFileUpload = (files: FileList | null, type: 'passport' | 'snils') => {
+  const handleFileUpload = (files: FileList | null, type: 'passport' | 'snils' | 'birth') => {
     if (!files) return;
     const filesArray = Array.from(files);
     
@@ -90,7 +92,7 @@ const Index = () => {
         title: "Фотографии паспорта загружены",
         description: `Загружено файлов: ${filesArray.length}`,
       });
-    } else {
+    } else if (type === 'snils') {
       if (filesArray.length > 1) {
         toast({
           title: "Превышен лимит",
@@ -103,6 +105,20 @@ const Index = () => {
       toast({
         title: "Фотография СНИЛС загружена",
         description: "Файл успешно добавлен",
+      });
+    } else if (type === 'birth') {
+      if (filesArray.length > 2) {
+        toast({
+          title: "Превышен лимит",
+          description: "Максимум 2 фотографии (две стороны)",
+          variant: "destructive",
+        });
+        return;
+      }
+      setBirthCertificateFiles(filesArray);
+      toast({
+        title: "Свидетельство о рождении загружено",
+        description: `Загружено файлов: ${filesArray.length}`,
       });
     }
   };
@@ -133,6 +149,8 @@ const Index = () => {
       setStep(0);
       setPassportFiles([]);
       setSnilsFiles([]);
+      setBirthCertificateFiles([]);
+      setHasYoungChildren(null);
       setInn('');
       setEmail('');
       
@@ -272,9 +290,9 @@ const Index = () => {
           </Card>
 
           <div className="mb-6">
-            <Progress value={(step / 3) * 100} className="h-2" />
+            <Progress value={(step / 4) * 100} className="h-2" />
             <p className="text-sm text-muted-foreground mt-2 text-center">
-              Шаг {step} из 3
+              Шаг {step} из 4
             </p>
           </div>
 
@@ -446,6 +464,141 @@ const Index = () => {
             <Card className="p-8 animate-fade-in">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon name="Baby" size={32} className="text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Свидетельство о рождении ребенка</h3>
+                <p className="text-muted-foreground">Если у вас есть дети до 7 лет</p>
+              </div>
+
+              {hasYoungChildren === null && (
+                <div className="space-y-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full h-20 border-2 hover:border-primary hover:bg-primary/5"
+                    onClick={() => setHasYoungChildren(true)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="CheckCircle" size={24} className="text-primary" />
+                      <span className="font-medium">У меня есть дети до 7 лет</span>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full h-20 border-2 hover:border-primary hover:bg-primary/5"
+                    onClick={() => {
+                      setHasYoungChildren(false);
+                      toast({
+                        title: "Принято",
+                        description: "Продолжаем заполнение",
+                      });
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="XCircle" size={24} className="text-muted-foreground" />
+                      <span className="font-medium">У меня нет детей / есть, но старше 7 лет</span>
+                    </div>
+                  </Button>
+                </div>
+              )}
+
+              {hasYoungChildren === true && (
+                <div>
+                  <div className="space-y-3 mb-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => handleFileUpload(e.target.files, 'birth')}
+                      className="hidden"
+                      id="birth-camera"
+                      multiple
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e.target.files, 'birth')}
+                      className="hidden"
+                      id="birth-gallery"
+                      multiple
+                    />
+                    
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                      onClick={() => document.getElementById('birth-camera')?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <Icon name="Camera" size={32} className="text-primary" />
+                        <span className="font-medium">Сфотографировать</span>
+                        <span className="text-xs text-muted-foreground">Две стороны</span>
+                      </div>
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                      onClick={() => document.getElementById('birth-gallery')?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <Icon name="ImagePlus" size={32} className="text-primary" />
+                        <span className="font-medium">Загрузить из галереи</span>
+                        <span className="text-xs text-muted-foreground">Две стороны</span>
+                      </div>
+                    </Button>
+                  </div>
+
+                  {birthCertificateFiles.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium mb-2">Загружено файлов: {birthCertificateFiles.length}</p>
+                      <div className="space-y-2">
+                        {birthCertificateFiles.map((file, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm">
+                            <Icon name="Check" size={16} className="text-green-500" />
+                            <span>{file.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mb-4"
+                    onClick={() => {
+                      setHasYoungChildren(null);
+                      setBirthCertificateFiles([]);
+                    }}
+                  >
+                    Изменить ответ
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-6">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                  Назад
+                </Button>
+                <Button 
+                  onClick={() => setStep(4)} 
+                  disabled={hasYoungChildren === null || (hasYoungChildren === true && birthCertificateFiles.length === 0)}
+                  className="flex-1 bg-accent hover:bg-accent/90 text-primary"
+                >
+                  Готово
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {step === 4 && (
+            <Card className="p-8 animate-fade-in">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Icon name="Info" size={32} className="text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Дополнительная информация</h3>
@@ -475,7 +628,7 @@ const Index = () => {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   Назад
                 </Button>
                 <Button 
