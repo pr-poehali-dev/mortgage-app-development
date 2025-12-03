@@ -26,7 +26,7 @@ interface Application {
 const Index = () => {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+7');
   const [smsCode, setSmsCode] = useState('');
   const [showSmsInput, setShowSmsInput] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
@@ -45,7 +45,7 @@ const Index = () => {
   ]);
 
   const handleSendSms = () => {
-    if (phone.length >= 10) {
+    if (phone.length >= 12) {
       const code = Math.floor(1000 + Math.random() * 9000).toString();
       setGeneratedCode(code);
       setShowSmsInput(true);
@@ -180,9 +180,22 @@ const Index = () => {
                 type="tel"
                 placeholder="+7 (___) ___-__-__"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.startsWith('+7')) {
+                    setPhone(value);
+                  } else if (value === '+' || value === '') {
+                    setPhone('+7');
+                  }
+                }}
+                onFocus={(e) => {
+                  if (phone === '+7') {
+                    e.target.setSelectionRange(2, 2);
+                  }
+                }}
                 className="text-lg"
                 disabled={showSmsInput}
+                maxLength={12}
               />
             </div>
             
@@ -206,7 +219,7 @@ const Index = () => {
             {!showSmsInput ? (
               <Button 
                 onClick={handleSendSms}
-                disabled={phone.length < 10}
+                disabled={phone.length < 12}
                 className="w-full bg-accent hover:bg-accent/90 text-primary font-semibold"
                 size="lg"
               >
