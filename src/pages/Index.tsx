@@ -34,7 +34,7 @@ const Index = () => {
   const [passportFiles, setPassportFiles] = useState<File[]>([]);
   const [snilsFiles, setSnilsFiles] = useState<File[]>([]);
   const [birthCertificateFiles, setBirthCertificateFiles] = useState<File[]>([]);
-  const [hasYoungChildren, setHasYoungChildren] = useState<boolean | null>(null);
+  const [childrenOption, setChildrenOption] = useState<'one' | 'two' | 'none' | null>(null);
   const [inn, setInn] = useState('');
   const [email, setEmail] = useState('');
   const [applications, setApplications] = useState<Application[]>([
@@ -107,10 +107,13 @@ const Index = () => {
         description: "Файл успешно добавлен",
       });
     } else if (type === 'birth') {
-      if (filesArray.length > 2) {
+      const maxFiles = childrenOption === 'one' ? 2 : 4;
+      const expectedText = childrenOption === 'one' ? '2 фотографии (одно свидетельство с двух сторон)' : '4 фотографии (два свидетельства с двух сторон)';
+      
+      if (filesArray.length > maxFiles) {
         toast({
           title: "Превышен лимит",
-          description: "Максимум 2 фотографии (две стороны)",
+          description: `Максимум ${expectedText}`,
           variant: "destructive",
         });
         return;
@@ -150,7 +153,7 @@ const Index = () => {
       setPassportFiles([]);
       setSnilsFiles([]);
       setBirthCertificateFiles([]);
-      setHasYoungChildren(null);
+      setChildrenOption(null);
       setInn('');
       setEmail('');
       
@@ -386,7 +389,7 @@ const Index = () => {
                   <Icon name="CreditCard" size={32} className="text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Загрузите фото СНИЛС</h3>
-                <p className="text-muted-foreground">Лицевая и обратная сторона</p>
+                <p className="text-muted-foreground">Только лицевая сторона</p>
               </div>
 
               <div className="space-y-3">
@@ -415,6 +418,7 @@ const Index = () => {
                   <div className="flex flex-col items-center gap-2">
                     <Icon name="Camera" size={32} className="text-primary" />
                     <span className="font-medium">Сфотографировать</span>
+                    <span className="text-xs text-muted-foreground">1 фото (лицевая сторона)</span>
                   </div>
                 </Button>
                 
@@ -427,6 +431,7 @@ const Index = () => {
                   <div className="flex flex-col items-center gap-2">
                     <Icon name="ImagePlus" size={32} className="text-primary" />
                     <span className="font-medium">Загрузить из галереи</span>
+                    <span className="text-xs text-muted-foreground">1 фото (лицевая сторона)</span>
                   </div>
                 </Button>
               </div>
@@ -466,45 +471,66 @@ const Index = () => {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Icon name="Baby" size={32} className="text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Свидетельство о рождении ребенка</h3>
-                <p className="text-muted-foreground">Если у вас есть дети до 7 лет</p>
+                <h3 className="text-xl font-semibold mb-2">Свидетельство о рождении</h3>
+                <p className="text-muted-foreground">Выберите вашу ситуацию</p>
               </div>
 
-              {hasYoungChildren === null && (
+              {childrenOption === null && (
                 <div className="space-y-3">
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full h-20 border-2 hover:border-primary hover:bg-primary/5"
-                    onClick={() => setHasYoungChildren(true)}
+                    className="w-full h-auto py-4 border-2 hover:border-primary hover:bg-primary/5 text-left"
+                    onClick={() => setChildrenOption('one')}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon name="CheckCircle" size={24} className="text-primary" />
-                      <span className="font-medium">У меня есть дети до 7 лет</span>
+                    <div className="flex items-start gap-3">
+                      <Icon name="Baby" size={24} className="text-primary flex-shrink-0 mt-1" />
+                      <div>
+                        <div className="font-medium mb-1">У меня есть ребенок до 7 лет</div>
+                        <div className="text-xs text-muted-foreground">Загрузить 1 свидетельство (две стороны)</div>
+                      </div>
                     </div>
                   </Button>
                   
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full h-20 border-2 hover:border-primary hover:bg-primary/5"
+                    className="w-full h-auto py-4 border-2 hover:border-primary hover:bg-primary/5 text-left"
+                    onClick={() => setChildrenOption('two')}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon name="Users" size={24} className="text-primary flex-shrink-0 mt-1" />
+                      <div>
+                        <div className="font-medium mb-1">У меня есть двое детей до 18 лет</div>
+                        <div className="text-xs text-muted-foreground">Загрузить 2 свидетельства (каждое с двух сторон)</div>
+                      </div>
+                    </div>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full h-auto py-4 border-2 hover:border-primary hover:bg-primary/5 text-left"
                     onClick={() => {
-                      setHasYoungChildren(false);
+                      setChildrenOption('none');
                       toast({
                         title: "Принято",
                         description: "Продолжаем заполнение",
                       });
                     }}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon name="XCircle" size={24} className="text-muted-foreground" />
-                      <span className="font-medium">У меня нет детей / есть, но старше 7 лет</span>
+                    <div className="flex items-start gap-3">
+                      <Icon name="XCircle" size={24} className="text-muted-foreground flex-shrink-0 mt-1" />
+                      <div>
+                        <div className="font-medium mb-1">У меня нет детей или я использовал семейную ипотеку</div>
+                        <div className="text-xs text-muted-foreground">Пропустить этот шаг</div>
+                      </div>
                     </div>
                   </Button>
                 </div>
               )}
 
-              {hasYoungChildren === true && (
+              {(childrenOption === 'one' || childrenOption === 'two') && (
                 <div>
                   <div className="space-y-3 mb-4">
                     <input
@@ -534,7 +560,9 @@ const Index = () => {
                       <div className="flex flex-col items-center gap-2">
                         <Icon name="Camera" size={32} className="text-primary" />
                         <span className="font-medium">Сфотографировать</span>
-                        <span className="text-xs text-muted-foreground">Две стороны</span>
+                        <span className="text-xs text-muted-foreground">
+                          {childrenOption === 'one' ? '2 фото (обе стороны)' : '4 фото (2 свидетельства)'}
+                        </span>
                       </div>
                     </Button>
                     
@@ -547,7 +575,9 @@ const Index = () => {
                       <div className="flex flex-col items-center gap-2">
                         <Icon name="ImagePlus" size={32} className="text-primary" />
                         <span className="font-medium">Загрузить из галереи</span>
-                        <span className="text-xs text-muted-foreground">Две стороны</span>
+                        <span className="text-xs text-muted-foreground">
+                          {childrenOption === 'one' ? '2 фото (обе стороны)' : '4 фото (2 свидетельства)'}
+                        </span>
                       </div>
                     </Button>
                   </div>
@@ -571,7 +601,7 @@ const Index = () => {
                     size="sm"
                     className="w-full mb-4"
                     onClick={() => {
-                      setHasYoungChildren(null);
+                      setChildrenOption(null);
                       setBirthCertificateFiles([]);
                     }}
                   >
@@ -586,7 +616,11 @@ const Index = () => {
                 </Button>
                 <Button 
                   onClick={() => setStep(4)} 
-                  disabled={hasYoungChildren === null || (hasYoungChildren === true && birthCertificateFiles.length === 0)}
+                  disabled={
+                    childrenOption === null || 
+                    (childrenOption === 'one' && birthCertificateFiles.length === 0) ||
+                    (childrenOption === 'two' && birthCertificateFiles.length === 0)
+                  }
                   className="flex-1 bg-accent hover:bg-accent/90 text-primary"
                 >
                   Готово
