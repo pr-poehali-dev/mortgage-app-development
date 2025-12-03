@@ -355,12 +355,18 @@ const Index = () => {
 
               {passportFiles.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Загружено файлов: {passportFiles.length}</p>
-                  <div className="space-y-2">
+                  <p className="text-sm font-medium mb-3">Загружено файлов: {passportFiles.length}</p>
+                  <div className="grid grid-cols-2 gap-3">
                     {passportFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <Icon name="Check" size={16} className="text-green-500" />
-                        <span>{file.name}</span>
+                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500">
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt={`Паспорт ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1">
+                          <Icon name="Check" size={14} />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -438,14 +444,16 @@ const Index = () => {
 
               {snilsFiles.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Загружено файлов: {snilsFiles.length}</p>
-                  <div className="space-y-2">
-                    {snilsFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <Icon name="Check" size={16} className="text-green-500" />
-                        <span>{file.name}</span>
-                      </div>
-                    ))}
+                  <p className="text-sm font-medium mb-3">Загружено</p>
+                  <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500 max-w-md mx-auto">
+                    <img 
+                      src={URL.createObjectURL(snilsFiles[0])} 
+                      alt="СНИЛС"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5">
+                      <Icon name="Check" size={16} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -584,12 +592,18 @@ const Index = () => {
 
                   {birthCertificateFiles.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-sm font-medium mb-2">Загружено файлов: {birthCertificateFiles.length}</p>
-                      <div className="space-y-2">
+                      <p className="text-sm font-medium mb-3">Загружено файлов: {birthCertificateFiles.length}</p>
+                      <div className="grid grid-cols-2 gap-3">
                         {birthCertificateFiles.map((file, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
-                            <Icon name="Check" size={16} className="text-green-500" />
-                            <span>{file.name}</span>
+                          <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              alt={`Свидетельство ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1">
+                              <Icon name="Check" size={14} />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -644,11 +658,22 @@ const Index = () => {
                   <label className="text-sm font-medium mb-2 block">ИНН</label>
                   <Input
                     type="text"
-                    placeholder="Введите ваш ИНН"
+                    placeholder="Введите ваш ИНН (12 цифр)"
                     value={inn}
-                    onChange={(e) => setInn(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 12) {
+                        setInn(value);
+                      }
+                    }}
                     maxLength={12}
+                    className={inn.length > 0 && inn.length < 12 ? 'border-red-500' : ''}
                   />
+                  {inn.length > 0 && inn.length < 12 && (
+                    <p className="text-xs text-red-500 mt-1">
+                      ИНН должен содержать 12 цифр (введено: {inn.length})
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Электронная почта</label>
@@ -667,7 +692,7 @@ const Index = () => {
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!inn || !email}
+                  disabled={inn.length !== 12 || !email}
                   className="flex-1 bg-accent hover:bg-accent/90 text-primary"
                 >
                   Отправить брокеру
