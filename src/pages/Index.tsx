@@ -27,6 +27,9 @@ const Index = () => {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phone, setPhone] = useState('');
+  const [smsCode, setSmsCode] = useState('');
+  const [showSmsInput, setShowSmsInput] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
   const [step, setStep] = useState(0);
   const [passportFiles, setPassportFiles] = useState<File[]>([]);
   const [snilsFiles, setSnilsFiles] = useState<File[]>([]);
@@ -41,12 +44,30 @@ const Index = () => {
     }
   ]);
 
-  const handleLogin = () => {
+  const handleSendSms = () => {
     if (phone.length >= 10) {
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedCode(code);
+      setShowSmsInput(true);
+      toast({
+        title: "SMS-код отправлен",
+        description: `Код подтверждения: ${code}`,
+      });
+    }
+  };
+
+  const handleVerifySms = () => {
+    if (smsCode === generatedCode) {
       setIsAuthenticated(true);
       toast({
         title: "Успешный вход",
         description: "Добро пожаловать в Polivanov Plus",
+      });
+    } else {
+      toast({
+        title: "Ошибка",
+        description: "Неверный код подтверждения",
+        variant: "destructive",
       });
     }
   };
@@ -145,15 +166,60 @@ const Index = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="text-lg"
+                disabled={showSmsInput}
               />
             </div>
-            <Button 
-              onClick={handleLogin}
-              className="w-full bg-accent hover:bg-accent/90 text-primary font-semibold"
-              size="lg"
-            >
-              Войти
-            </Button>
+            
+            {showSmsInput && (
+              <div className="animate-fade-in">
+                <label className="text-sm font-medium mb-2 block">Код из SMS</label>
+                <Input
+                  type="text"
+                  placeholder="Введите 4-значный код"
+                  value={smsCode}
+                  onChange={(e) => setSmsCode(e.target.value)}
+                  maxLength={4}
+                  className="text-lg text-center tracking-widest"
+                />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Код отправлен на {phone}
+                </p>
+              </div>
+            )}
+            
+            {!showSmsInput ? (
+              <Button 
+                onClick={handleSendSms}
+                disabled={phone.length < 10}
+                className="w-full bg-accent hover:bg-accent/90 text-primary font-semibold"
+                size="lg"
+              >
+                Получить код
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <Button 
+                  onClick={handleVerifySms}
+                  disabled={smsCode.length !== 4}
+                  className="w-full bg-accent hover:bg-accent/90 text-primary font-semibold"
+                  size="lg"
+                >
+                  Подтвердить
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowSmsInput(false);
+                    setSmsCode('');
+                    setGeneratedCode('');
+                  }}
+                  variant="ghost"
+                  className="w-full text-sm"
+                  size="sm"
+                >
+                  Изменить номер телефона
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
