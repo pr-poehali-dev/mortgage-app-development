@@ -77,6 +77,14 @@ const Index = () => {
     const filesArray = Array.from(files);
     
     if (type === 'passport') {
+      if (filesArray.length > 20) {
+        toast({
+          title: "Превышен лимит",
+          description: "Максимум 20 фотографий паспорта",
+          variant: "destructive",
+        });
+        return;
+      }
       setPassportFiles(filesArray);
       toast({
         title: "Фотографии паспорта загружены",
