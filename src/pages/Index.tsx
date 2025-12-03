@@ -74,6 +74,20 @@ const Index = () => {
     }
   };
 
+  const handleRemoveFile = (type: 'passport' | 'snils' | 'birth', index: number) => {
+    if (type === 'passport') {
+      setPassportFiles(prev => prev.filter((_, i) => i !== index));
+    } else if (type === 'snils') {
+      setSnilsFiles([]);
+    } else if (type === 'birth') {
+      setBirthCertificateFiles(prev => prev.filter((_, i) => i !== index));
+    }
+    toast({
+      title: "Фотография удалена",
+      description: "Вы можете загрузить новую",
+    });
+  };
+
   const handleFileUpload = (files: FileList | null, type: 'passport' | 'snils' | 'birth') => {
     if (!files) return;
     const filesArray = Array.from(files);
@@ -126,8 +140,35 @@ const Index = () => {
     }
   };
 
-  const handleSubmit = () => {
-    if (inn && email) {
+  const handleSubmit = async () => {
+    if (inn.length === 12 && email) {
+      const formData = new FormData();
+      formData.append('phone', phone);
+      formData.append('inn', inn);
+      formData.append('email', email);
+      formData.append('childrenOption', childrenOption || 'none');
+      
+      passportFiles.forEach((file, idx) => {
+        formData.append(`passport_${idx}`, file);
+      });
+      
+      if (snilsFiles.length > 0) {
+        formData.append('snils', snilsFiles[0]);
+      }
+      
+      birthCertificateFiles.forEach((file, idx) => {
+        formData.append(`birth_${idx}`, file);
+      });
+      
+      try {
+        const response = await fetch('https://functions.poehali.dev/28b81cc8-83ca-47fa-8ad7-b19cfb001550', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Ошибка отправки');
+        }
       const newApplication: Application = {
         id: Date.now().toString(),
         status: 'pending',
@@ -148,19 +189,26 @@ const Index = () => {
         ]
       };
       
-      setApplications([newApplication, ...applications]);
-      setStep(0);
-      setPassportFiles([]);
-      setSnilsFiles([]);
-      setBirthCertificateFiles([]);
-      setChildrenOption(null);
-      setInn('');
-      setEmail('');
-      
-      toast({
-        title: "Документы отправлены брокеру",
-        description: "Ваша заявка принята в обработку",
-      });
+        setApplications([newApplication, ...applications]);
+        setStep(0);
+        setPassportFiles([]);
+        setSnilsFiles([]);
+        setBirthCertificateFiles([]);
+        setChildrenOption(null);
+        setInn('');
+        setEmail('');
+        
+        toast({
+          title: "Документы отправлены брокеру",
+          description: "Ваша заявка принята в обработку",
+        });
+      } catch (error) {
+        toast({
+          title: "Ошибка отправки",
+          description: "Попробуйте позже",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -184,14 +232,16 @@ const Index = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#ff1654] via-[#ff3838] to-[#ff8a3d] flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8 animate-scale-in">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Icon name="Building2" size={40} className="text-primary" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/b4d49d73-fac7-44ef-8e67-6de35a601ef6.jpeg" 
+              alt="Polivanov Plus" 
+              className="w-32 h-32 mx-auto mb-4 object-contain"
+            />
             <h1 className="text-3xl font-bold text-primary mb-2">Polivanov Plus</h1>
-            <p className="text-muted-foreground">Ипотечный брокер</p>
+            <p className="text-muted-foreground">Агентство недвижимости</p>
           </div>
 
           <div className="space-y-4">
@@ -358,7 +408,7 @@ const Index = () => {
                   <p className="text-sm font-medium mb-3">Загружено файлов: {passportFiles.length}</p>
                   <div className="grid grid-cols-2 gap-3">
                     {passportFiles.map((file, idx) => (
-                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500">
+                      <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500 group">
                         <img 
                           src={URL.createObjectURL(file)} 
                           alt={`Паспорт ${idx + 1}`}
@@ -367,6 +417,12 @@ const Index = () => {
                         <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1">
                           <Icon name="Check" size={14} />
                         </div>
+                        <button
+                          onClick={() => handleRemoveFile('passport', idx)}
+                          className="absolute top-1 left-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Icon name="X" size={14} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -445,7 +501,7 @@ const Index = () => {
               {snilsFiles.length > 0 && (
                 <div className="mt-4">
                   <p className="text-sm font-medium mb-3">Загружено</p>
-                  <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500 max-w-md mx-auto">
+                  <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500 max-w-md mx-auto group">
                     <img 
                       src={URL.createObjectURL(snilsFiles[0])} 
                       alt="СНИЛС"
@@ -454,6 +510,12 @@ const Index = () => {
                     <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5">
                       <Icon name="Check" size={16} />
                     </div>
+                    <button
+                      onClick={() => handleRemoveFile('snils', 0)}
+                      className="absolute top-2 left-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Icon name="X" size={16} />
+                    </button>
                   </div>
                 </div>
               )}
@@ -595,7 +657,7 @@ const Index = () => {
                       <p className="text-sm font-medium mb-3">Загружено файлов: {birthCertificateFiles.length}</p>
                       <div className="grid grid-cols-2 gap-3">
                         {birthCertificateFiles.map((file, idx) => (
-                          <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500">
+                          <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border-2 border-green-500 group">
                             <img 
                               src={URL.createObjectURL(file)} 
                               alt={`Свидетельство ${idx + 1}`}
@@ -604,6 +666,12 @@ const Index = () => {
                             <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1">
                               <Icon name="Check" size={14} />
                             </div>
+                            <button
+                              onClick={() => handleRemoveFile('birth', idx)}
+                              className="absolute top-1 left-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Icon name="X" size={14} />
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -707,15 +775,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-primary text-white shadow-lg">
+      <header className="bg-gradient-to-r from-[#ff1654] via-[#ff3838] to-[#ff8a3d] text-white shadow-lg">
         <div className="container mx-auto px-4 py-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
-              <Icon name="Building2" size={24} className="text-primary" />
-            </div>
+            <img 
+              src="https://cdn.poehali.dev/files/b4d49d73-fac7-44ef-8e67-6de35a601ef6.jpeg" 
+              alt="Polivanov Plus" 
+              className="w-12 h-12 object-contain bg-white rounded-full p-1"
+            />
             <div>
               <h1 className="text-xl font-bold">Polivanov Plus</h1>
-              <p className="text-xs text-white/80">Ипотечный брокер</p>
+              <p className="text-xs text-white/90">Агентство недвижимости</p>
             </div>
           </div>
           <Button 
