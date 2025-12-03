@@ -91,10 +91,18 @@ const Index = () => {
         description: `Загружено файлов: ${filesArray.length}`,
       });
     } else {
+      if (filesArray.length > 1) {
+        toast({
+          title: "Превышен лимит",
+          description: "Можно загрузить только 1 фотографию СНИЛС",
+          variant: "destructive",
+        });
+        return;
+      }
       setSnilsFiles(filesArray);
       toast({
-        title: "Фотографии СНИЛС загружены",
-        description: `Загружено файлов: ${filesArray.length}`,
+        title: "Фотография СНИЛС загружена",
+        description: "Файл успешно добавлен",
       });
     }
   };
@@ -267,20 +275,48 @@ const Index = () => {
                 <p className="text-muted-foreground">Все страницы с данными и пропиской</p>
               </div>
 
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handleFileUpload(e.target.files, 'passport')}
+                  className="hidden"
+                  id="passport-camera"
+                />
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e.target.files, 'passport')}
                   className="hidden"
-                  id="passport-upload"
+                  id="passport-gallery"
                 />
-                <label htmlFor="passport-upload" className="cursor-pointer">
-                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">Выберите файлы</p>
-                  <p className="text-sm text-muted-foreground">или перетащите их сюда</p>
-                </label>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                  onClick={() => document.getElementById('passport-camera')?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Icon name="Camera" size={32} className="text-primary" />
+                    <span className="font-medium">Сфотографировать</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                  onClick={() => document.getElementById('passport-gallery')?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Icon name="ImagePlus" size={32} className="text-primary" />
+                    <span className="font-medium">Загрузить из галереи</span>
+                  </div>
+                </Button>
               </div>
 
               {passportFiles.length > 0 && (
@@ -322,20 +358,46 @@ const Index = () => {
                 <p className="text-muted-foreground">Лицевая и обратная сторона</p>
               </div>
 
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+              <div className="space-y-3">
                 <input
                   type="file"
-                  multiple
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handleFileUpload(e.target.files, 'snils')}
+                  className="hidden"
+                  id="snils-camera"
+                />
+                <input
+                  type="file"
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e.target.files, 'snils')}
                   className="hidden"
-                  id="snils-upload"
+                  id="snils-gallery"
                 />
-                <label htmlFor="snils-upload" className="cursor-pointer">
-                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">Выберите файлы</p>
-                  <p className="text-sm text-muted-foreground">или перетащите их сюда</p>
-                </label>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                  onClick={() => document.getElementById('snils-camera')?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Icon name="Camera" size={32} className="text-primary" />
+                    <span className="font-medium">Сфотографировать</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full h-24 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                  onClick={() => document.getElementById('snils-gallery')?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Icon name="ImagePlus" size={32} className="text-primary" />
+                    <span className="font-medium">Загрузить из галереи</span>
+                  </div>
+                </Button>
               </div>
 
               {snilsFiles.length > 0 && (
